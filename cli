@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+# Command Line Runner for Stock Analyser
+
+import lib.utils.version_check
+
+from lib.utils.args import args
+from lib.utils.args import debug
+from lib.fetcher import fetch
+
+debug("Using LIMIT {}".format(args.limit))
+
+try:
+    fetch(args.limit)
+except Exception as err:
+    debug("Programme failed.", force=True)
+    debug(err)
