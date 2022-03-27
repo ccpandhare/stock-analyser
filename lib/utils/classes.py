@@ -58,7 +58,7 @@ class myLoginSession:
         login_payload = {'username':self.__username, 'password':self.__password, 'csrfmiddlewaretoken':csrftoken}
         resp = self.__session.post(self.__login_url, data = login_payload, headers=dict(Referer=self.__login_url))
         
-    def mySession(self):
+    def mySession(self) -> [requests.sessions.Session]:
         return self.__session
 
     def closeSession(self):
@@ -77,9 +77,6 @@ class Companies:
     __company_search_url = 'https://www.screener.in/api/company/search/'
 
     __limit: int
-    # TODO : Check if the below is required. If we use it, it will take up more RAM
-    #__companies: [pd.DataFrame]
-    #__companyTickers: [pd.DataFrame]
 
     __session: [requests.sessions.Session]
 
@@ -132,38 +129,54 @@ class Companies:
 
         #The companyTickers are indexed from 1 while companies_df are 0-indexed
         companyTickers = pd.DataFrame(index = range(1, companies_df.shape[0]+1), columns = ['Name', 'Ticker', 'URL'])
-        
+        # Can use companyTickers.index.rename('S.No.', inplace=True) to rename the index col
+        # & companyTickers = companyTickers.reindex(range(0,90))
+
         # Extract the company name and the company URL sub-path
-        for i in range(1, companies_df.shape[0]+1):
+        i = 1
+        while(i<=companies_df.shape[0]):
+        #for i in range(1, companies_df.shape[0]+1):
             # i-1 is used for the values index as companies_df are 0-indexed
             company_payload = {'q':(companies_df['Name'].values[i-1]), 'v':'2'}
 
-            # Provides the dictionary containing company info using the company_payload
-            company_search = session.get(self.__company_search_url, params = company_payload)
+            try:
+                # Provides the dictionary containing company info using the company_payload
+                company_search = session.get(self.__company_search_url, params = company_payload)
 
-            # TODO: Check if this can be done in a better way
-            company_dict = literal_eval(company_search.text[1:-1])
-            # The company_serach can provide a tuple of dictionaries containing companies info
-            # which match the  using the company_payload companies_df['Name'] value but we pick 1st
-            # Ex: companies_df['Name'].values[i-1] = "Marico", then the company_search query would 
-            # provide Marico Ltd' & 'Marico Kaya Enterprises Ltd'
-            if(type(company_dict) == type(())):
-                company_dict = company_dict[0]
-            company_name = company_dict['name']
-            company_url = company_dict['url']
-            company_ticker = company_url.split('/')[2]
-            companyTickers['Name'][i] = company_name
-            companyTickers['Ticker'][i] = company_ticker
-            companyTickers['URL'][i] = company_url
-            sleep(1)
+                # TODO: Check if this can be done in a better way
+                company_dict = literal_eval(company_search.text[1:-1])
+                # The company_serach can provide a tuple of dictionaries containing companies info
+                # which match the  using the company_payload companies_df['Name'] value but we pick 1st
+                # Ex: companies_df['Name'].values[i-1] = "Marico", then the company_search query would 
+                # provide Marico Ltd' & 'Marico Kaya Enterprises Ltd'
+                if(type(company_dict) == type(())):
+                    company_dict = company_dict[0]
+                company_name = company_dict['name']
+                company_url = company_dict['url']
+                company_ticker = company_url.split('/')[2]
+                companyTickers.loc[i] = [company_name, company_ticker, company_url]
+                # companyTickers['Name'][i] = company_name
+                # companyTickers['Ticker'][i] = company_ticker
+                # companyTickers['URL'][i] = company_url
+            except:
+                # TODO : Need to find a graceful way of cleaning up the connection
+                sleep(5)
         companyTickers.to_csv('../../CompanyTickers.csv')
     
-    def getCompanies(self,refetch = False):
+    def getCompanies(self,refetch = False) -> [pd.DataFrame]:
         if((refetch == True) or (path.exists('../../Companies.csv') == False)):
             self.__fetchCompanies()
-        return pd.read_csv('../../Companies.csv', index_col = 0)
+        companies = pd.read_csv('../../Companies.csv', index_col = 0)
+        if(companies.shape[0] != self.__limit):
+            self.__fetchCompanies()
+            companies = pd.read_csv('../../Companies.csv', index_col = 0)
+        return companies
 
-    def getCompanyTickers(self,refetch = False):
+    def getCompanyTickers(self,refetch = False) -> [pd.DataFrame]:
         if((refetch == True) or (path.exists('../../CompanyTickers.csv') == False)):
             self.__fetchCompanies()
-        return pd.read_csv('../../CompanyTickers.csv', index_col = 0)
+        companyTickers = pd.read_csv('../../CompanyTickers.csv', index_col = 0)
+        if(companyTickers.shape[0] != self.__limit):
+            self.__fetchCompanies()
+            companyTickers = pd.read_csv('../../CompanyTickers.csv', index_col = 0)
+        return companyTickers
