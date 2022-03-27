@@ -129,7 +129,6 @@ class Companies:
                 screen_payload['page'] = str(page_iter)
             sleep(1)
         companies_df.to_csv('../../Companies.csv')
-        #self.__companies = companies_df
 
         #The companyTickers are indexed from 1 while companies_df are 0-indexed
         companyTickers = pd.DataFrame(index = range(1, companies_df.shape[0]+1), columns = ['Name', 'Ticker', 'URL'])
@@ -158,19 +157,13 @@ class Companies:
             companyTickers['URL'][i] = company_url
             sleep(1)
         companyTickers.to_csv('../../CompanyTickers.csv')
-        #self.__companyTickers = companyTickers
-
     
     def getCompanies(self,refetch = False):
-        #if((self.__companies.empty == True) or (refetch == True)):
         if((refetch == True) or (path.exists('../../Companies.csv') == False)):
             self.__fetchCompanies()
-        #return self.__companies
         return pd.read_csv('../../Companies.csv', index_col = 0)
 
     def getCompanyTickers(self,refetch = False):
-        #if((self.__companies.empty == True) or (refetch == True)):
         if((refetch == True) or (path.exists('../../CompanyTickers.csv') == False)):
             self.__fetchCompanies()
-        #return self.__companyTickers
         return pd.read_csv('../../CompanyTickers.csv', index_col = 0)
