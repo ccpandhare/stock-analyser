@@ -2,6 +2,8 @@ import datetime
 import argparse
 import requests
 import pandas as pd
+from ast import literal_eval
+from os import path
 
 class Document:
     name: str
@@ -12,6 +14,7 @@ class Document:
 class Stock:
     ticker: str
     name: str
+    url: str
 
     pe_ratio: float
     roe: float
@@ -23,6 +26,8 @@ class Stock:
 
     def __init__(ticker: str):
         self.ticker = ticker
+
+
 
 class myLoginSession:
     """
@@ -59,24 +64,29 @@ class myLoginSession:
     def closeSession(self):
         self.__session.close()
 
+
+
 class Companies:
     """
     Usage:
     Companies = Companies(session, 101)
-    print(Companies.getCompanies()
+    myCompanies = Companies.getCompanyTickers()
     """
     __screen_url: str = 'https://www.screener.in/screen/raw/'
     __screen_referer_url: str = 'https://www.screener.in/screen/new/'
+    __company_search_url = 'https://www.screener.in/api/company/search/'
 
     __limit: int
-    __companies: [pd.DataFrame]
+    # TODO : Check if the below is required. If we use it, it will take up more RAM
+    #__companies: [pd.DataFrame]
+    #__companyTickers: [pd.DataFrame]
 
     __session: [requests.sessions.Session]
 
     def __init__(self,session,limit=100000):
         self.__limit = limit
         self.__session = session
-        self.__companies = pd.DataFrame() #empty DF to append to
+        #self.__companies = pd.DataFrame() #empty DF to append to
         
     def setLimit(self,limit=100000, refetch = False):
         self.__limit = limit
@@ -113,14 +123,54 @@ class Companies:
             if(no_of_rows != row_count):
                 break
             elif(companies_df.shape[0] >= self.__limit):
-                companies_df = companies_df.loc[companies_df.index <= self.__limit]
+                companies_df = companies_df.loc[companies_df.index <= (self.__limit)]
                 break
             else:
                 screen_payload['page'] = str(page_iter)
             sleep(1)
-        self.__companies = companies_df
+        companies_df.to_csv('../../Companies.csv')
+        #self.__companies = companies_df
+
+        #The companyTickers are indexed from 1 while companies_df are 0-indexed
+        companyTickers = pd.DataFrame(index = range(1, companies_df.shape[0]+1), columns = ['Name', 'Ticker', 'URL'])
+        
+        # Extract the company name and the company URL sub-path
+        for i in range(1, companies_df.shape[0]+1):
+            # i-1 is used for the values index as companies_df are 0-indexed
+            company_payload = {'q':(companies_df['Name'].values[i-1]), 'v':'2'}
+
+            # Provides the dictionary containing company info using the company_payload
+            company_search = session.get(self.__company_search_url, params = company_payload)
+
+            # TODO: Check if this can be done in a better way
+            company_dict = literal_eval(company_search.text[1:-1])
+            # The company_serach can provide a tuple of dictionaries containing companies info
+            # which match the  using the company_payload companies_df['Name'] value but we pick 1st
+            # Ex: companies_df['Name'].values[i-1] = "Marico", then the company_search query would 
+            # provide Marico Ltd' & 'Marico Kaya Enterprises Ltd'
+            if(type(company_dict) == type(())):
+                company_dict = company_dict[0]
+            company_name = company_dict['name']
+            company_url = company_dict['url']
+            company_ticker = company_url.split('/')[2]
+            companyTickers['Name'][i] = company_name
+            companyTickers['Ticker'][i] = company_ticker
+            companyTickers['URL'][i] = company_url
+            sleep(1)
+        companyTickers.to_csv('../../CompanyTickers.csv')
+        #self.__companyTickers = companyTickers
+
     
     def getCompanies(self,refetch = False):
-        if((self.__companies.empty == True) or (refetch == True)):
+        #if((self.__companies.empty == True) or (refetch == True)):
+        if((refetch == True) or (path.exists('../../Companies.csv') == False)):
             self.__fetchCompanies()
-        return self.__companies
+        #return self.__companies
+        return pd.read_csv('../../Companies.csv', index_col = 0)
+
+    def getCompanyTickers(self,refetch = False):
+        #if((self.__companies.empty == True) or (refetch == True)):
+        if((refetch == True) or (path.exists('../../CompanyTickers.csv') == False)):
+            self.__fetchCompanies()
+        #return self.__companyTickers
+        return pd.read_csv('../../CompanyTickers.csv', index_col = 0)
