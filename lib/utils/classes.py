@@ -71,13 +71,13 @@ class Session:
         self.__session.close()
 
 
-
+"""
 class CompanyTickers:
-    """
+    
     Usage:
     Companies = Companies(session=session,limit=101)
     myCompanies = Companies.getCompanyTickers()
-    """
+    
     __screen_url: str = 'https://www.screener.in/screen/raw/'
     __screen_referer_url: str = 'https://www.screener.in/screen/new/'
     __company_search_url = 'https://www.screener.in/api/company/search/'
@@ -141,3 +141,4 @@ class CompanyTickers:
             self.__fetchCompanies()
             companyTickers = pd.read_csv('../../CompanyTickers.csv', index_col = 0)
         return companyTickers
+"""
