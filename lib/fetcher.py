@@ -1,11 +1,18 @@
 # Fetches tickers of stocks listed on Indian Stock Exchanges
-# returns the first `limit` tickers
+# returns the first `limit` ticker data
 
-def fetch(session: [requests.sessions.Session], limit: int) -> [pd.DataFrame]:
+import requests
+import pandas as pd
+import re
+from time import sleep
+from bs4 import BeautifulSoup
+from typing import List
+
+def fetch(session: requests.Session, limit: int) -> List[pd.DataFrame]:
     screen_referer_url: str = 'https://www.screener.in/screen/new/'
     screen_payload = {'sort':'market capitalization','source':'','query': 'Current price '}
 
-    companyTickers = pd.DataFrame(columns = ['Name', 'Ticker', 'URL']) #empty DF to append to
+    company_tickers = pd.DataFrame(columns = ['Name', 'Ticker', 'URL']) #empty DF to append to
 
     page_iter = 1
     row_iter = 0
@@ -24,17 +31,16 @@ def fetch(session: [requests.sessions.Session], limit: int) -> [pd.DataFrame]:
             company_url = anchor['href']
             company_ticker = company_url.split('/')[2]
             row_iter = row_iter + 1
-            companyTickers.loc[row_iter] = [company_name, company_ticker, company_url]
+            company_tickers.loc[row_iter] = [company_name, company_ticker, company_url]
             
         page_iter = page_iter + 1
         screen_referer_url = screen_page.url
         if(row_iter%row_count != 0):
             break
         elif(row_iter >= limit):
-            #companyTickers.set_index('No.', inplace=True)
-            companyTickers = companyTickers.loc[companyTickers.index <= (limit)]
+            company_tickers = company_tickers.loc[company_tickers.index <= (limit)]
             break
         else:
             screen_payload['page'] = str(page_iter)
         sleep(1)
-    return companyTickers
+    return company_tickers
