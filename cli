@@ -9,14 +9,15 @@ from lib.utils.session import Session
 from lib.utils.args import args
 from lib.utils.args import debug
 from lib.fetcher import fetch
+from lib.scraper import scrape
 
 debug("Using LIMIT {}".format(args.limit))
 
 try:
     session = Session().getSession()
     tickers = fetch(session, args.limit)
-    print("Tickers: ")
-    print(tickers)
+    stocks = [scrape(session, ticker) for ticker in tickers]
+
 except Exception as err:
     debug("Programme failed.", force=True)
     debug(err)
