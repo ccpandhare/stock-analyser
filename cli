@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Command Line Runner for Stock Analyser
 
-import lib.utils.version_check
+import traceback
 
+import lib.utils.version_check
+from lib.utils.session import Session
 from lib.utils.args import args
 from lib.utils.args import debug
 from lib.fetcher import fetch
@@ -11,7 +13,11 @@ from lib.fetcher import fetch
 debug("Using LIMIT {}".format(args.limit))
 
 try:
-    fetch(args.limit)
+    session = Session().getSession()
+    tickers = fetch(session, args.limit)
+    print("Tickers: ")
+    print(tickers)
 except Exception as err:
     debug("Programme failed.", force=True)
     debug(err)
+    traceback.print_exc()
