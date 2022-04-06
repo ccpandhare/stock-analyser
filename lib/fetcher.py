@@ -6,9 +6,8 @@ import pandas as pd
 import re
 from time import sleep
 from bs4 import BeautifulSoup
-from typing import List
 
-def fetch(session: requests.Session, limit: int) -> List[pd.DataFrame]:
+def fetch(session: requests.Session, limit: int) -> pd.DataFrame:
     screen_referer_url: str = 'https://www.screener.in/screen/new/'
     screen_payload = {'sort':'market capitalization','source':'','query': 'Current price '}
 
