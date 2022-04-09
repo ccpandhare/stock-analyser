@@ -1,24 +1,25 @@
 import datetime
-from typing import List
+from typing import List, TypedDict
 
 class Document:
     name: str
     url: str
     date: datetime.date
 
+class ChronologicalFloat(TypedDict):
+    title: str
+    value: float
 
 class Stock:
     ticker: str
     name: str
     url: str
 
-    pe_ratio: float
-    roe: float
-    roce: float
+    net_profit: List[ChronologicalFloat]
 
-    annual_reports: List[Document] = []
-    concalls: List[Document] = []
-    credit_reports: List[Document] = []
-
-    def __init__(self, ticker: str):
+    def __init__(self, ticker, name, url, net_profit):
         self.ticker = ticker
+        self.name = name
+        self.url = url
+        self.net_profit = net_profit
+    
