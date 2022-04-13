@@ -59,7 +59,7 @@ def calc_NPV(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, 
 
 def DCF_MC_analysis(self, init_profit, init_fixed_asset, market_cap):
     """
-    Purpose:
+    Usage:
     Margin of safety parameter
     Provides the (mean+3*sigma) limit of the market_cap/net_present_value estimates.
     This limit < 0.9 for enough margin of safety.
@@ -86,7 +86,7 @@ def DCF_MC_analysis(self, init_profit, init_fixed_asset, market_cap):
 
 def Calc_SSGR_revenue(revenue, NPM, DPR, fixed_assets_start, depreciation):
     """
-    Purpose:
+    Usage:
     1. Margin of safety parameter
     2. Calculate the self sustainable growth rate (SSGR) of the company on the basis of sales
     3. SSGR indicates the company's ability to fund the extent of its growth without needing external debt
@@ -112,7 +112,7 @@ def Calc_SSGR_revenue(revenue, NPM, DPR, fixed_assets_start, depreciation):
 
 def Calc_SSGR_CFO(CFO, PAT, DPR, fixed_assets_start, depreciation):
     """
-    Purpose:
+    Usage:
     1. Margin of safety parameter
     2. Calculate the self sustainable growth rate (SSGR) of the company on CFO
     3. SSGR indicates the company's ability to fund the extent of its growth without needing external debt
