@@ -4,7 +4,7 @@ from utils import Stock
 def analyse(stock: Stock) -> bool:
     raise Exception("Not implemented")
 
-def calc_NPV(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, \
+def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, \
             years_until_decay, discount_rate, init_fixed_asset, market_cap, no_of_years):
     """
     Params:
@@ -57,7 +57,7 @@ def calc_NPV(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, 
     net_present_value += discounted_terminal_value
     return (market_cap/net_present_value)
 
-def DCF_MC_analysis(self, init_profit, init_fixed_asset, market_cap):
+def dcf_mc_analysis(self, init_profit, init_fixed_asset, market_cap):
     """
     Usage:
     Margin of safety parameter
@@ -79,7 +79,7 @@ def DCF_MC_analysis(self, init_profit, init_fixed_asset, market_cap):
     for yud in years_until_decay:
         for pgr in perpetual_growth_rate:
             for j in range(iterations):
-                npv_distribution.append(self.calc_NPV(init_profit, init_profit_growth_rate[j], \
+                npv_distribution.append(self.calc_npv(init_profit, init_profit_growth_rate[j], \
                 pgr, yud, discount_rate[j], init_fixed_asset, \
                 market_cap, no_of_years)) 
     return np.mean(npv_distribution)+3*np.std(npv_distribution)
