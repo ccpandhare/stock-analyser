@@ -1,24 +1,27 @@
 import datetime
-from typing import List
+import pandas as pd
 
 class Document:
     name: str
     url: str
     date: datetime.date
 
-
 class Stock:
     ticker: str
     name: str
     url: str
 
-    pe_ratio: float
-    roe: float
-    roce: float
+    # Apparently there's no way to type a DataFrame, thanks Python
+    # So here goes
+    # rows: net_profit
+    # columns: years (or TTM)
+    financial_data_raw: pd.DataFrame
 
-    annual_reports: List[Document] = []
-    concalls: List[Document] = []
-    credit_reports: List[Document] = []
-
-    def __init__(self, ticker: str):
+    def __init__(self, ticker, name, url):
         self.ticker = ticker
+        self.name = name
+        self.url = url
+    
+    def set_financial_data_raw(self, financial_data_raw):
+        self.financial_data_raw = financial_data_raw
+    

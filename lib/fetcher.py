@@ -6,12 +6,13 @@ import pandas as pd
 import re
 from time import sleep
 from bs4 import BeautifulSoup
+from typing import List
 
-def fetch(session: requests.Session, limit: int) -> pd.DataFrame:
+def fetch(session: requests.Session, limit: int) -> List[str]:
     screen_referer_url: str = 'https://www.screener.in/screen/new/'
     screen_payload = {'sort':'market capitalization','source':'','query': 'Current price '}
 
-    company_tickers = pd.DataFrame(columns = ['Name', 'Ticker', 'URL']) #empty DF to append to
+    company_tickers = []
 
     page_iter = 1
     row_iter = 0
@@ -26,18 +27,18 @@ def fetch(session: requests.Session, limit: int) -> pd.DataFrame:
         screen_table = screen_page_soup.findAll('table')[0] #Extracting the 1st HTML table from the list
 
         for anchor in screen_table.findAll('a', target="_blank"):
-            company_name = re.findall("\w.+", anchor.text)[0]
+            if (row_iter >= limit):
+                break
             company_url = anchor['href']
             company_ticker = company_url.split('/')[2]
             row_iter = row_iter + 1
-            company_tickers.loc[row_iter] = [company_name, company_ticker, company_url]
+            company_tickers.append(company_ticker)
             
         page_iter = page_iter + 1
         screen_referer_url = screen_page.url
         if(row_iter%row_count != 0):
             break
         elif(row_iter >= limit):
-            company_tickers = company_tickers.loc[company_tickers.index <= (limit)]
             break
         else:
             screen_payload['page'] = str(page_iter)
