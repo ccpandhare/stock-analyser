@@ -9,7 +9,7 @@ def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, 
     """
     Params:
     1. Calculate the Net Present Value depending upon csh flows
-    2. init_profit = {CFO, (OP - Tax paid) (this is better)}
+    2. init_profit = {cfo, (OP - Tax paid) (this is better)}
     3. init_profit_growth_rate = can be list of gaussian distributions with 3 different means
                                     The center mean can be an average of the last 3 years while 
                                     upper and lower can be +/-4%
@@ -18,7 +18,7 @@ def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, 
                             growth rate
     6. discount_rate = assume a high discount rate
     7. init_fixed_asset is used in capex estimate
-        7.1. Use the New fixed asset = PAT/(fixed Asset*new PAT)
+        7.1. Use the New fixed asset = pat/(fixed Asset*new pat)
                                         = fixed_asset*(1+profit_growth_rate)
         7.2. growth capex = (New fixed asset - fixed asset)
         7.3. Add maintainence capex of 4% of fixed assets             
@@ -65,7 +65,7 @@ def dcf_mc_analysis(self, init_profit, init_fixed_asset, market_cap):
     This limit < 0.9 for enough margin of safety.
 
     Params:
-    1. init_profit = {CFO, (OP - Tax paid) (this is better)}
+    1. init_profit = {cfo, (OP - Tax paid) (this is better)}
     """
     # TODO : run tests on iterations to see what value is good enough
     iterations              = 100000
@@ -84,7 +84,7 @@ def dcf_mc_analysis(self, init_profit, init_fixed_asset, market_cap):
                 market_cap, no_of_years)) 
     return np.mean(npv_distribution)+3*np.std(npv_distribution)
 
-def Calc_SSGR_revenue(revenue, NPM, DPR, fixed_assets_start, depreciation):
+def calc_ssgr_revenue(revenue, npm, dpr, fixed_assets_start, depreciation):
     """
     Usage:
     1. Margin of safety parameter
@@ -94,13 +94,13 @@ def Calc_SSGR_revenue(revenue, NPM, DPR, fixed_assets_start, depreciation):
     
     Params:
     1. revenue              : revenue of current year
-    2. NPM                  : Net profit margin
-    3. DPR                  : Dividend payout ratio
+    2. npm                  : Net profit margin
+    3. dpr                  : Dividend payout ratio
     4. fixed_assets_start   : Net fixed assets at end of current year
     5. depreciation         : Depreciation of the current year
     """ 
     # Funds available for reinvestment for investment from current year
-    funds_available = revenue*NPM*(1-DPR)
+    funds_available = revenue*npm*(1-dpr)
     # Fixed assets at the beginning of the next year assuming all the funds available are reinvested
     # Assumed deprec
     fixed_assets_end = (fixed_assets_start*(1 - (depreciation/fixed_assets_start))) + funds_available
@@ -108,29 +108,29 @@ def Calc_SSGR_revenue(revenue, NPM, DPR, fixed_assets_start, depreciation):
     expected_sales = fixed_assets_end*(revenue/fixed_assets_start)
     SSGR = (expected_sales/revenue) - 1
     return SSGR
-    #return (((((fixed_assets_start*(1 - (depreciation/fixed_assets_start))) + (revenue*NPM*(1-DPR)))*NFAT)/revenue) - 1)
+    #return (((((fixed_assets_start*(1 - (depreciation/fixed_assets_start))) + (revenue*npm*(1-dpr)))*NFAT)/revenue) - 1)
 
-def Calc_SSGR_CFO(CFO, PAT, DPR, fixed_assets_start, depreciation):
+def calc_ssgr_cfo(cfo, pat, dpr, fixed_assets_start, depreciation):
     """
     Usage:
     1. Margin of safety parameter
-    2. Calculate the self sustainable growth rate (SSGR) of the company on CFO
+    2. Calculate the self sustainable growth rate (SSGR) of the company on cfo
     3. SSGR indicates the company's ability to fund the extent of its growth without needing external debt
-    4. If SSGR > past CFO growth trends then company doesn't need debt.
+    4. If SSGR > past cfo growth trends then company doesn't need debt.
 
     Params:
-    1. CFO                  : CFO of current year
-    2. PAT                  : Profit of current year
-    3. DPR                  : Dividend payout ratio
+    1. cfo                  : cfo of current year
+    2. pat                  : Profit of current year
+    3. dpr                  : Dividend payout ratio
     4. fixed_assets_start   : Net fixed assets at end of current year
     5. depreciation         : Depreciation of the current year
     """ 
     # Funds available for reinvestment for investment from current year
-    funds_available = CFO - (PAT*DPR)
+    funds_available = cfo - (pat*dpr)
     # Fixed assets at the beginning of the next year assuming all the funds available are reinvested
     # Assumed deprec
     fixed_assets_end = (fixed_assets_start*(1 - (depreciation/fixed_assets_start))) + funds_available
     # Expected sales
-    expected_CFO = fixed_assets_end*(CFO/fixed_assets_start)
-    SSGR = (expected_CFO/CFO) - 1
+    expected_cfo = fixed_assets_end*(cfo/fixed_assets_start)
+    SSGR = (expected_cfo/cfo) - 1
     return SSGR
