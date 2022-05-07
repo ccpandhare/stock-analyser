@@ -2,6 +2,15 @@ from utils import Stock
 
 # Given a stock, return whether it should be considered for manual review
 def analyse(stock: Stock) -> bool:
+    """
+    Possible checks:
+    1. If the RoA is increasing while the Dividend payout is under 20%, then the company is improving 
+       asset utilization -> come up with equation where for given year dividend payout if not given
+       then what is the RoA and then see if it is better than last year's actual RoA
+	2. Joel greenbalt's rule on earning yield and RoCE (higher earnings yield and higher RoCE is better).
+       Can this be reduced to a single parameter)
+    3. NPV and SSGR can be used to assess margin of safety   
+    """
     raise Exception("Not implemented")
 
 def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, \
