@@ -18,8 +18,18 @@ parser.add_argument(
     dest="debug"
 )
 
+parser.add_argument(
+    "-p, --print-output",
+    type=bool,
+    help="Print the scraped data in a tabular format",
+    default=False,
+    dest="print_output"
+)
+
 args = parser.parse_args()
 
 def debug(message: str, force=False):
     if args.debug == True:
-        print("*** ", message)
+        lines = message.split('\n')
+        for line in lines:
+            print("*** ", line)

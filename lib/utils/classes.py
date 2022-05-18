@@ -16,6 +16,7 @@ class Stock:
     # rows: net_profit
     # columns: years (or TTM)
     financial_data_raw: pd.DataFrame
+    cashflow_data_raw: pd.DataFrame
 
     def __init__(self, ticker, name, url):
         self.ticker = ticker
@@ -24,4 +25,7 @@ class Stock:
     
     def set_financial_data_raw(self, financial_data_raw):
         self.financial_data_raw = financial_data_raw
+    
+    def set_cashflow_data_raw(self, cashflow_data_raw):
+        self.cashflow_data_raw = cashflow_data_raw
     
