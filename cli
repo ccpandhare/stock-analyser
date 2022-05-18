@@ -29,6 +29,8 @@ try:
             debug(stock.balance_sheet_data_raw.to_string())
             debug("\nAnnual Reports:")
             debug(json.dumps(stock.annual_reports))
+            debug("\nCredit Ratings:")
+            debug(json.dumps(stock.credit_ratings))
 
 except Exception as err:
     debug("Programme failed.", force=True)

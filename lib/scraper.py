@@ -32,13 +32,17 @@ def scrape(session: requests.Session, ticker: str) -> Stock:
     
     annual_reports = parse_documents(
         soup.select_one('#documents .annual-reports .list-links'),
-        3)
+        5)
+    credit_ratings = parse_documents(
+        soup.select_one('#documents .credit-ratings .list-links'),
+        5)
 
     stock = Stock(ticker, name, url)
     stock.set_financial_data_raw(financial_data_raw_df)
     stock.set_cashflow_data_raw(cashflow_data_raw_df)
     stock.set_balance_sheet_data_raw(balance_sheet_data_raw_df)
     stock.set_annual_reports(annual_reports)
+    stock.set_credit_ratings(credit_ratings)
 
     return stock
 

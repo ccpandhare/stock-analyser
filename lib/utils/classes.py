@@ -20,6 +20,7 @@ class Stock:
     balance_sheet_data_raw: pd.DataFrame
 
     annual_reports: List[Document]
+    credit_ratings: List[Document]
 
     def __init__(self, ticker, name, url):
         self.ticker = ticker
@@ -37,4 +38,7 @@ class Stock:
     
     def set_annual_reports(self, annual_reports: List[Document]):
         self.annual_reports = annual_reports
+    
+    def set_credit_ratings(self, credit_ratings: List[Document]):
+        self.credit_ratings = credit_ratings
     
