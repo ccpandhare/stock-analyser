@@ -1,10 +1,10 @@
-import datetime
+from datetime import datetime
+from typing import List, TypedDict
 import pandas as pd
 
-class Document:
+class Document(TypedDict):
     name: str
     url: str
-    date: datetime.date
 
 class Stock:
     ticker: str
@@ -19,6 +19,8 @@ class Stock:
     cashflow_data_raw: pd.DataFrame
     balance_sheet_data_raw: pd.DataFrame
 
+    annual_reports: List[Document]
+
     def __init__(self, ticker, name, url):
         self.ticker = ticker
         self.name = name
@@ -32,4 +34,7 @@ class Stock:
     
     def set_balance_sheet_data_raw(self, balance_sheet_data_raw):
         self.balance_sheet_data_raw = balance_sheet_data_raw
+    
+    def set_annual_reports(self, annual_reports: List[Document]):
+        self.annual_reports = annual_reports
     

@@ -1,10 +1,12 @@
+from datetime import datetime
 from typing import Dict, List
+from xmlrpc.client import DateTime
 import requests
 import re
 
 import pandas as pd
 from bs4 import BeautifulSoup
-from lib.utils.classes import Stock
+from lib.utils.classes import Document, Stock
 from lib.utils.args import debug
 from lib.utils.row_names import profit_loss_row_names, cashflow_row_names, balance_sheet_row_names
 from bs4 import BeautifulSoup, Tag
@@ -17,6 +19,7 @@ def scrape(session: requests.Session, ticker: str) -> Stock:
     page = session.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
     name = soup.find('h1').text
+
     financial_data_raw_df = parse_table(
         soup.select_one('#profit-loss .data-table'),
         profit_loss_row_names)
@@ -26,11 +29,17 @@ def scrape(session: requests.Session, ticker: str) -> Stock:
     balance_sheet_data_raw_df = parse_table(
         soup.select_one('#balance-sheet .data-table'),
         balance_sheet_row_names)
+    
+    annual_reports = parse_documents(
+        soup.select_one('#documents .annual-reports .list-links'),
+        3)
 
     stock = Stock(ticker, name, url)
     stock.set_financial_data_raw(financial_data_raw_df)
     stock.set_cashflow_data_raw(cashflow_data_raw_df)
     stock.set_balance_sheet_data_raw(balance_sheet_data_raw_df)
+    stock.set_annual_reports(annual_reports)
+
     return stock
 
 def parse_table(ref: Tag, row_names: Dict[str, str]) -> pd.DataFrame:
@@ -54,3 +63,11 @@ def find_unimportant_rows(indices: List[str], row_names: Dict[str, str]) -> List
 
 def map_name(name: str, map: Dict[str, str]) -> str:
     return map[name]
+
+def parse_documents(ref: Tag, limit: int) -> List[Document]:
+    links = ref.select('a')[:limit]
+    documents = [{
+        "name": link.select_one('div').previous_sibling.text.strip(),
+        "url": link['href'],
+    } for link in links]
+    return documents

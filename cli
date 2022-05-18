@@ -2,6 +2,7 @@
 
 # Command Line Runner for Stock Analyser
 
+import json
 import traceback
 
 import lib.utils.version_check
@@ -26,6 +27,8 @@ try:
             debug(stock.cashflow_data_raw.to_string())
             debug("\nBalance Sheet:")
             debug(stock.balance_sheet_data_raw.to_string())
+            debug("\nAnnual Reports:")
+            debug(json.dumps(stock.annual_reports))
 
 except Exception as err:
     debug("Programme failed.", force=True)
