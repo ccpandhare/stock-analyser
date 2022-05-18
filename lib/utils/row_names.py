@@ -19,3 +19,13 @@ cashflow_row_names = {
     "cash from financing activity": "cfo_financing",
     "net cash flow": "cfo_net",
 }
+
+balance_sheet_row_names = {
+    "share capital": "equity",
+    "reserves": "reserves",
+    "borrowings": "borrowings",
+    "total liabilities": "total_liabilities",
+    "fixed assets": "fixed_assets",
+    "cwip": "cwip",
+    "total assets": "total_assets",
+}
