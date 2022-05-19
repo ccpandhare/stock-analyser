@@ -6,7 +6,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from lib.utils.classes import Stock
 from lib.utils.args import debug
-from lib.utils.row_names import profit_loss_row_names
+from lib.utils.row_names import profit_loss_row_names, cashflow_row_names, balance_sheet_row_names
 from bs4 import BeautifulSoup, Tag
 
 # Given a ticker, scrapes the web for information and returns a Stock object
@@ -20,9 +20,17 @@ def scrape(session: requests.Session, ticker: str) -> Stock:
     financial_data_raw_df = parse_table(
         soup.select_one('#profit-loss .data-table'),
         profit_loss_row_names)
+    cashflow_data_raw_df = parse_table(
+        soup.select_one('#cash-flow .data-table'),
+        cashflow_row_names)
+    balance_sheet_data_raw_df = parse_table(
+        soup.select_one('#balance-sheet .data-table'),
+        balance_sheet_row_names)
 
     stock = Stock(ticker, name, url)
     stock.set_financial_data_raw(financial_data_raw_df)
+    stock.set_cashflow_data_raw(cashflow_data_raw_df)
+    stock.set_balance_sheet_data_raw(balance_sheet_data_raw_df)
     return stock
 
 def parse_table(ref: Tag, row_names: Dict[str, str]) -> pd.DataFrame:

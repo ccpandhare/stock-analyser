@@ -18,6 +18,15 @@ try:
     tickers = fetch(session, args.limit)
     stocks = [scrape(session, ticker) for ticker in tickers]
 
+    if args.print_output:
+        for stock in stocks:
+            debug("\nP&L:")
+            debug(stock.financial_data_raw.to_string())
+            debug("\nCashflow:")
+            debug(stock.cashflow_data_raw.to_string())
+            debug("\nBalance Sheet:")
+            debug(stock.balance_sheet_data_raw.to_string())
+
 except Exception as err:
     debug("Programme failed.", force=True)
     debug(err)
