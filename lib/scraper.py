@@ -69,9 +69,11 @@ def map_name(name: str, map: Dict[str, str]) -> str:
     return map[name]
 
 def parse_documents(ref: Tag, limit: int) -> List[Document]:
+    if ref is None:
+        return []
     links = ref.select('a')[:limit]
     documents = [{
-        "name": link.select_one('div').previous_sibling.text.strip(),
+        "name": link.select_one('div').previous_sibling.string.strip(),
         "url": link['href'],
     } for link in links]
     return documents
