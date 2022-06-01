@@ -1,4 +1,5 @@
 from utils import Stock
+import numpy as np
 
 # Given a stock, return whether it should be considered for manual review
 def analyse(stock: Stock) -> bool:
