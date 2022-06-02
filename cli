@@ -11,6 +11,7 @@ from lib.utils.args import args
 from lib.utils.args import debug
 from lib.fetcher import fetch
 from lib.scraper import scrape
+from lib.analyser import calc_params
 
 debug("Using LIMIT {}".format(args.limit))
 
@@ -18,6 +19,10 @@ try:
     session = Session().getSession()
     tickers = fetch(session, args.limit)
     stocks = [scrape(session, ticker) for ticker in tickers]
+
+    for stock in stocks:
+        calc_params(stock)
+
 
     if args.print_output:
         for stock in stocks:
@@ -31,6 +36,8 @@ try:
             debug(json.dumps(stock.annual_reports))
             debug("\nCredit Ratings:")
             debug(json.dumps(stock.credit_ratings))
+            debug("\nFinancial Ratios:")
+            debug(stock.financial_ratios.to_string())
 
 except Exception as err:
     debug("Programme failed.", force=True)

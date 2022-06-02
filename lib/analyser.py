@@ -1,5 +1,7 @@
-from utils import Stock
+from lib.utils.classes import Stock
 import numpy as np
+import pandas as pd
+import statistics
 
 # Given a stock, return whether it should be considered for manual review
 def analyse(stock: Stock) -> bool:
@@ -14,7 +16,169 @@ def analyse(stock: Stock) -> bool:
     """
     raise Exception("Not implemented")
 
-def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, \
+def calc_params(stock: Stock):
+    """
+    Calculating roa, ebit margins, roce, sales growth, profit growth
+    Writing this function with the assumption that the number of years are the same in all 3 tables
+    """
+
+    years = stock.financial_data_raw.columns
+    index = ['ebit_margin', 'revenue_growth', 'pbt_growth', 'roce', 'roa']
+    financial_ratios_df = pd.DataFrame(index=index,columns = years)
+
+    revenue = (np.array(stock.financial_data_raw.loc['revenue'])).astype(np.float)
+    pbt = (np.array(stock.financial_data_raw.loc['pbt'])).astype(np.float)
+    interest = (np.array(stock.financial_data_raw.loc['interest'])).astype(np.float)
+    equity = (stock.balance_sheet_data_raw.loc['equity']).astype(np.float)
+    reserves = (stock.balance_sheet_data_raw.loc['reserves']).astype(np.float)
+    borrowings = (stock.balance_sheet_data_raw.loc['borrowings']).astype(np.float)
+    net_profit = (stock.financial_data_raw.loc['net_profit']).astype(np.float)
+    total_assets = (stock.balance_sheet_data_raw.loc['total_assets']).astype(np.float)
+
+    financial_ratios_df.loc['ebit_margin'] = np.round((100*(pbt+interest))/revenue, 2)
+    financial_ratios_df.loc['roce'] = np.round(100*(pbt+interest)/(equity+reserves+borrowings), 2)
+    financial_ratios_df.loc['roa'] = np.round(100*net_profit/total_assets,2)
+
+    revenue_growth = (revenue[1:] - revenue[0:-1])*100/revenue[0:-1]
+    revenue_growth = np.concatenate(([0], revenue_growth), axis=0)
+    financial_ratios_df.loc['revenue_growth'] = np.round(revenue_growth, 2)
+
+    pbt_growth = (pbt[1:] - pbt[0:-1])*100/pbt[0:-1]
+    pbt_growth = np.concatenate(([0], pbt_growth), axis=0)
+    financial_ratios_df.loc['pbt_growth'] = np.round(pbt_growth, 2)
+
+    stock.set_financial_ratios(financial_ratios_df)
+     
+
+def roce_analysis(stock: Stock):
+    """
+    Take last 5 years RoCE numbers, atleast 3 out of 5 should be above 10%
+    Rising RoCE is an added bonus
+    return 3 params, the bool output to the above 2 statements and the average bps increase/decrease
+    """
+    # The last 5 years RoCE
+    roce_arr = list(stock.financial_ratios.loc['roce'])[-5:]
+
+    output = [roce for roce in roce_arr if(roce>12)]
+    stock.roce_above_10 = len(output)
+
+    average_5_roce = statistics.mean(roce_arr)
+    average_3_roce = statistics.mean(roce_arr[-3:])
+    stock.rising_roce = (average_5_roce <= average_3_roce <= roce_arr[-1])
+
+    stock.roce_avg_bps_increase = (roce_arr[-1] - roce_arr[0])/len(roce_arr)
+
+def margin_efficieny(stock: Stock):
+    """
+    check for number of years the margins have increased
+
+    How to characterize large swings in the margins
+    Check if margins have stayed within a delta to the median/mean
+    
+    """
+    # The last 6 years RoCE
+    ebit_margins = list(stock.financial_ratios.loc['ebit_margin'])[-6:]
+    max_ebit_margin = max(ebit_margins)
+    min_ebit_margin = min(ebit_margins)
+    median_ebit_margin = statistics.median(ebit_margins)
+    max_min_ebit_margin = max_ebit_margin - min_ebit_margin
+
+    yoy_margin_increase_count = 0
+    negative_margin_count = 0
+    increase_index = []
+    decrease_index = []
+    for i in range(1, 6):
+        if(ebit_margins[i] >= ebit_margins[i-1]):
+            yoy_margin_increase_count += 1
+            increase_index.append(i)
+        else:
+            decrease_index.append(i)
+        if(ebit_margins[i] < 0):
+            negative_margin_count += 1
+
+    # For now just care that atleast one year the EBIT margins are positive
+    if(negative_margin_count == 5):
+        margin_score = 0
+    else:
+        if(yoy_margin_increase_count == 5):
+            margin_score = 5
+        elif(yoy_margin_increase_count == 4):
+            # The one and only element in decrease_index
+            decrease_index_year = decrease_index[0]
+
+            # if its the last element we don't have much to judge, hence benefit of 
+            # the doubt and give margin score of 5
+            if(decrease_index_year == 5): 
+                margin_score = 5
+            
+            elif(decrease_index_year == 4):
+                #if margins the year after the decrease are >= margin the year before the decrease,
+                # then is an aberation
+                if(ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+1]):
+                    margin_score = 5
+                else:
+                    margin_score = 4
+            elif(decrease_index_year == 3):
+                if(ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+1]):
+                    margin_score = 5
+                elif(ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+2]):
+                    margin_score = 4
+            elif(decrease_index_year == 2):
+                if(ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+1]):
+                    margin_score = 5
+                elif((ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+2]) or ...
+                    (ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+3])):
+                    margin_score = 4
+                else:
+                    margin_score = 3
+
+        elif((yoy_margin_increase_count <= 3) or (yoy_margin_increase_count => 1)):
+            if(median_ebit_margin >= 12):
+                if(max_min_ebit_margin <= 4):
+                    margin_score = 4
+                elif(max_min_ebit_margin <= 6):
+                    margin_score = 3
+                else:
+                    margin_score = 2
+            elif(median_ebit_margin >= 8):
+                if(max_min_ebit_margin <= 4):
+                    margin_score = 2
+                else:
+                    margin_score = 1
+            else:
+                margin_score = 0
+        else:
+            margin_score = 0
+
+    stock.yoy_margin_increase_count = yoy_margin_increase_count
+    stock.negative_margin_count = negative_margin_count
+    stock.margin_score = margin_score
+
+
+def roa_efficiency(stock: Stock):
+    """
+    If the RoA is increasing while the Dividend payout is under 20%, then the company is improving 
+    asset utilization -> come up with equation where for given year dividend payout if not given
+    then what is the RoA and then see if it is better than last year's actual RoA
+    """
+    # The last 5 years dpr
+    roce_arr = list(stock.financial_ratios.loc['roa'])[-5:]
+
+
+# def margin_of_safety(stock: Stock):
+
+
+# 
+
+
+# def growth_check(stock: Stock):
+
+
+# def dividend_check(stock: Stock):
+
+
+
+def calc_npv(init_profit, init_profit_growth_rate, perpetual_growth_rate, \
             years_until_decay, discount_rate, init_fixed_asset, market_cap, no_of_years):
     """
     Params:
@@ -67,7 +231,7 @@ def calc_npv(self, init_profit, init_profit_growth_rate, perpetual_growth_rate, 
     net_present_value += discounted_terminal_value
     return (market_cap/net_present_value)
 
-def dcf_mc_analysis(self, init_profit, init_fixed_asset, market_cap):
+def dcf_mc_analysis(init_profit, init_fixed_asset, market_cap):
     """
     Usage:
     Margin of safety parameter
