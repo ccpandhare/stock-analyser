@@ -126,13 +126,12 @@ def margin_efficieny(stock: Stock):
             elif(decrease_index_year == 2):
                 if(ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+1]):
                     margin_score = 5
-                elif((ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+2]) or ...
-                    (ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+3])):
+                elif((ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+2]) or (ebit_margins[decrease_index_year-1] <= ebit_margins[decrease_index_year+3])):
                     margin_score = 4
                 else:
                     margin_score = 3
 
-        elif((yoy_margin_increase_count <= 3) or (yoy_margin_increase_count => 1)):
+        elif((yoy_margin_increase_count <= 3) or (1 <= yoy_margin_increase_count)):
             if(median_ebit_margin >= 12):
                 if(max_min_ebit_margin <= 4):
                     margin_score = 4
@@ -154,6 +153,26 @@ def margin_efficieny(stock: Stock):
     stock.negative_margin_count = negative_margin_count
     stock.margin_score = margin_score
 
+def dividend_check(stock: Stock):
+    """
+    dpr should be under 20% for the last 5 years
+    dividend against debt check
+    """
+    # The last 5 years dpr
+    dpr_raw = list(stock.financial_data_raw.loc['dpr'])[-5:]
+    dpr_clean = np.array([int(dpr.split("%")[0]) for dpr in dpr_raw])
+    dpr_mean = dpr_clean.mean()
+
+    borrowings = (stock.balance_sheet_data_raw.loc['borrowings']).astype(np.float)[-5:]
+    net_profit = (stock.financial_data_raw.loc['net_profit']).astype(np.float)[-5:]
+
+    if(dpr_mean <= 20):
+        stock.controlled_dpr = True
+    else:
+        stock.controlled_dpr = False
+
+    stock.idiot_dividend_policy = (borrowings > net_profit) & (dpr_clean > 10)
+    stock.idiot_dividend_policy_points = len(np.nonzero(idiot_management_arr))
 
 def roa_efficiency(stock: Stock):
     """
@@ -161,20 +180,23 @@ def roa_efficiency(stock: Stock):
     asset utilization -> come up with equation where for given year dividend payout if not given
     then what is the RoA and then see if it is better than last year's actual RoA
     """
-    # The last 5 years dpr
-    roce_arr = list(stock.financial_ratios.loc['roa'])[-5:]
+    
 
 
 # def margin_of_safety(stock: Stock):
 
 
-# 
+# def debt_check(stock: Stock):
+    """
+    compare debt against profits
+    compare debt against capex and cwip
+    """
 
 
 # def growth_check(stock: Stock):
 
 
-# def dividend_check(stock: Stock):
+
 
 
 

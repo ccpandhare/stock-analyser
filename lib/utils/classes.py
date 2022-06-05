@@ -32,6 +32,10 @@ class Stock:
     negative_margin_count: int
     margin_score: int
 
+    controlled_dpr: bool
+    idiot_dividend_policy: list
+    idiot_dividend_policy_points: int
+
     def __init__(self, ticker, name, url):
         self.ticker = ticker
         self.name = name
