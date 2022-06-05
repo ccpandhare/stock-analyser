@@ -22,6 +22,20 @@ class Stock:
     annual_reports: List[Document]
     credit_ratings: List[Document]
 
+    financial_ratios: pd.DataFrame
+
+    roce_above_10: bool
+    rising_roce: bool
+    roce_avg_bps_increase: float
+
+    yoy_margin_increase_count: int
+    negative_margin_count: int
+    margin_score: int
+
+    controlled_dpr: bool
+    idiot_dividend_policy: list
+    idiot_dividend_policy_points: int
+
     def __init__(self, ticker, name, url):
         self.ticker = ticker
         self.name = name
@@ -41,4 +55,7 @@ class Stock:
     
     def set_credit_ratings(self, credit_ratings: List[Document]):
         self.credit_ratings = credit_ratings
+
+    def set_financial_ratios(self, financial_ratios):
+        self.financial_ratios = financial_ratios
     
