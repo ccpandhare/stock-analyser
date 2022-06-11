@@ -59,8 +59,8 @@ def roce_analysis(stock: Stock):
     # The last 5 years RoCE
     roce_arr = list(stock.financial_ratios.loc['roce'])[-5:]
 
-    output = [roce for roce in roce_arr if(roce>12)]
-    stock.roce_above_10 = len(output)
+    output = [roce for roce in roce_arr if(roce>15)]
+    stock.roce_above_15 = len(output)
 
     average_5_roce = statistics.mean(roce_arr)
     average_3_roce = statistics.mean(roce_arr[-3:])
@@ -180,24 +180,68 @@ def roa_efficiency(stock: Stock):
     asset utilization -> come up with equation where for given year dividend payout if not given
     then what is the RoA and then see if it is better than last year's actual RoA
     """
-    
-
+    roa = (np.array(stock.financial_ratios_df.loc['roa'])).astype(np.float)[-5:]
+    mean_roa = statistics.mean(roa)
+    stock.roa_efficient = (mean_roa <= roa)
 
 # def margin_of_safety(stock: Stock):
 
 
-# def debt_check(stock: Stock):
+def debt_check(stock: Stock):
     """
-    compare debt against profits
-    compare debt against capex and cwip
+    TODO : rising debt or one time - time series analysis?
+    compare debt against capex and cwip to check the usage of debt
+    compare debt against CFO - assuming CFO remain constant, check if interest + principal can repaid
     """
+    cfo = list(stock.cashflow_data_raw.loc['cfo_operating'])
+    debt = list(stock.balance_sheet_data_raw.loc['borrowings'])
+    # replace with gross block if possible
+    fixed_assets = list(stock.balance_sheet_data_raw.loc['fixed_assets'])
+    cwip = list(stock.balance_sheet_data_raw.loc['cwip'])
+    ppe = fixed_assets + cwip
 
+    
+    # If the ppe has increased over the years, check if increase in debt matched cumulative increase in fixed assets+cwip
+    # assume 5 (+1) years
+    start_debt = debt[-6]
+    max_debt = max(debt[-6:])
+    delta_debt = max_debt - start_debt
+    end_debt = debt[-1]
 
-# def growth_check(stock: Stock):
+    debt_rise = start_debt <= (1.1*end_debt)
 
+    if(debt_rise):
+        start_asset = ppe[-6]
+        max_asset = max(ppe[-6:])
+        if(start_asset != max_asset):
+            delta_asset = max_asset - start_asset
+            stock.debt_used_capex = (delta_debt <= delta_asset)
+        else:
+            stock.debt_used_capex = False
+    else:
+        stock.debt_used_capex = False
 
+    # Per year amount needed to pay off debt within 5 years
+    years = 5
+    rate = 8
+    current_debt = debt[-1]
+    current_cfo = cfo[-1]
+    E = (current_debt*rate*(pow((1+rate),years)))/((pow((1+rate),years)) - 1)
+    stock.debt_payable = (E <= current_cfo)
 
+def calc_cagr(start_val, end_val, years):
+    return round(((pow((end_val/start_val), (1/years))-1)*100),2)
 
+def growth_check(stock: Stock):
+    """
+    Sales and profit growth (atleast average 10% CAGR)
+    TODO : FCF growth + capex growth
+    """
+    revenue = (stock.financial_data_raw.loc['revenue'])[-6:]
+    profit = (stock.financial_data_raw.loc['net_profit'])[-6:]
+
+    stock.revenue_growth = (calc_cagr(revenue[0],revenue[-1], 5) > 10)
+    stock.profit_growth = (calc_cagr(profit[0],profit[-1], 5) > 10)
 
 
 def calc_npv(init_profit, init_profit_growth_rate, perpetual_growth_rate, \

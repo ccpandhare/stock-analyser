@@ -24,7 +24,7 @@ class Stock:
 
     financial_ratios: pd.DataFrame
 
-    roce_above_10: bool
+    roce_above_15: bool
     rising_roce: bool
     roce_avg_bps_increase: float
 
@@ -35,6 +35,12 @@ class Stock:
     controlled_dpr: bool
     idiot_dividend_policy: list
     idiot_dividend_policy_points: int
+
+    debt_payable: bool
+    debt_used_capex: bool
+
+    revenue_growth: bool
+    profit_growth: bool
 
     def __init__(self, ticker, name, url):
         self.ticker = ticker
